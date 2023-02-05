@@ -13,11 +13,12 @@ from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import WebDriverException,TimeoutException
 import urllib.request
 
 
 class EasySelenium():
+    #get the selenium driver
     def __init__(self,link:str,headless:bool=False):
 
         #dir should look like "/the/path/to/current/dir"
@@ -38,34 +39,48 @@ class EasySelenium():
         #store data to self
         self.dir=dir
         self.link=link
-
+    
+    #use unix time in ms to get an unique img name
+    #current dir vs. customized dir
     @property
     def defaultImgLoc(self):
         return self.imgLocByTime(self.dir)
+    
     def imgLocByTime(self,loc):
         return os.path.join(loc,os.popen('date +%Y%m%d%H%M%S').read().strip('\n')+".png")
-    
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    #set to full screen and take a screen
     def screenshot(self,imgLoc:str=defaultImgLoc):
         self.setToFullScreen()
         # driver.save_screenshot(path)  # has scrollbar
         time.sleep(5)
         self.driver.find_element('tag name','body').screenshot(imgLoc)  # avoids scrollbar
         self.setToOriginalSize()
-
+    
+    #full screen
     def setToFullScreen(self):
+        #store the orignal size
         self.original_size = self.driver.get_window_size()
+        #set to full screen
         required_width = self.driver.execute_script('return document.body.parentNode.scrollWidth')
         required_height = self.driver.execute_script('return document.body.parentNode.scrollHeight')
         time.sleep(1)
         self.driver.set_window_size(required_width, required_height)
-
+    #default screen size
     def setToOriginalSize(self):
         self.driver.set_window_size(self.original_size['width'], self.original_size['height'])
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+    #page loc
     def sendToTheBottom(self):
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-
     
+    def sendToTheTop(self):
+        self.driver.execute_script("window.scrollTo(0, 0);")
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    #save src from dir
     def saveFromSrc(self,elementTypeAndName:list,saveAs:str):
         src=self.driver 
         # elementTypeAndName be like ["class name","imgContainer","css selector",'img']
@@ -73,31 +88,34 @@ class EasySelenium():
         for i in range(int(len(elementTypeAndName)/2)):
             src=src.find_element(elementTypeAndName[i*2],elementTypeAndName[i*2+1])
         urllib.request.urlretrieve(src.get_attribute('src'),saveAs)
-    
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    def _keepDoing(self,error,sec:int=1):
-        loop=None
+    #keep doing a thing until it works
+    def _keepDoing(self,action,sec:int=1):
+        loop=True
         while loop:
-            loop=False
             try:
-                error
-            except WebDriverException:
-                loop=True
-            except Exception:
-                loop=True
+                action
+                loop=False
+            except:
+                pass
             time.sleep(sec)
-
-    #wait until element appear / disappear
-    def waitUntilE(self,untilAppear:bool,elementType:str,name:str,sec:int):
-        if untilAppear:
-            self._keepDoing(self.driver.find_element(elementType,name).is_displayed(),sec)
-            #WebDriverWait(self.driver, timeout=86400).until(self.driver.find_element(elementType,name).is_displayed())
-        else:
-            while self.driver.find_element(elementType,name).is_displayed():
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    def waitUntilDisappear(self,elementType:str,name:str,sec:int=1):
+        while self.driver.find_element(elementType,name).is_displayed():
                 time.sleep(sec)
-    #click element
+    
+    #click if clickable
     def eClick(self,elementType:str,name:str):
+        wait=True
+        while wait:
+            try:
+                WebDriverWait(self.driver, 1).until(expected_conditions.element_to_be_clickable(self.driver.find_element(elementType,name)))
+                wait=False
+            except TimeoutException:
+                pass
         self._keepDoing(self.driver.find_element(elementType,name).click())
+
     #eClick but better but make sure the element is visible
     def eUltraClick(self,elementType:str,name:str):
         self._keepDoing(ActionChains(self.driver).move_to_element(self.driver.find_element(elementType,name)).click().perform())
@@ -109,10 +127,16 @@ class EasySelenium():
 
     def idSelectDropdown(self,id:str,element:str):
         self.eSelectDropdown("id",id,element)
+    
     def eSelectDropdown(self,elementType:str,name:str,element:str):
         self._keepDoing(Select(self.driver.find_element(elementType,name)).select_by_visible_text(element))
 
-    
+    def keyDown(self,key):
+        ActionChains(self.driver).key_down(key).perform()
+    def keyUp(self,key):
+        ActionChains(self.driver).key_up(key).perform()
+
+    #I dont know if anyone gonna use it or not
     def close(self):
         self.driver.close()
 
