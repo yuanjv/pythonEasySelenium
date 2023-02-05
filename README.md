@@ -1,5 +1,5 @@
 # pythonEasySelenium
-for firefox and the driver should be in the same dir
+the firefox driver and the script should be in the same dir
 
 
 
