@@ -69,11 +69,11 @@ class StableDiffusionWeb(EasySelenium):
         #fix face
         self.sendToTheBottom()
         if fixFace:
-           self.eUltraClick("id","use_face_correction")
+           self.eClickUltra("id","use_face_correction")
         
         #resX4
         if resX4:
-            self.eUltraClick("id","use_upscale")
+            self.eClickUltra("id","use_upscale")
 
            
         
@@ -122,7 +122,7 @@ class StableDiffusionWeb(EasySelenium):
             #reset window
             self.sendToTheTop()
             self.keyDown(Keys.SHIFT)
-            self.eUltraClick("id","clear-all-previews")
+            self.eClickUltra("id","clear-all-previews")
             self.keyUp(Keys.SHIFT)
         
         #end 
