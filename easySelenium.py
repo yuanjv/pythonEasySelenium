@@ -50,6 +50,13 @@ class EasySelenium():
         return os.path.join(loc,os.popen('date +%Y%m%d%H%M%S').read().strip('\n')+".png")
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+    #set to background or foregound
+    def background(self):
+        self.driver.minimize_window()
+    def foreground(self):
+        self.driver.switch_to.default_content()
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
     #set to full screen and take a screen
     def screenshot(self,imgLoc:str=defaultImgLoc):
         self.setToFullScreen()
