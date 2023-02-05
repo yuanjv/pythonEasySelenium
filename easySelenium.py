@@ -124,7 +124,7 @@ class EasySelenium():
         self._keepDoing(self.driver.find_element(elementType,name).click())
 
     #eClick but better but make sure the element is visible
-    def eUltraClick(self,elementType:str,name:str):
+    def eClickUltra(self,elementType:str,name:str):
         self._keepDoing(ActionChains(self.driver).move_to_element(self.driver.find_element(elementType,name)).click().perform())
         
     #rewrite the text in a element
